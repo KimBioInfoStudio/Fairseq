@@ -503,7 +503,7 @@ class Trainer(object):
                 state = checkpoint_utils.load_checkpoint_to_cpu(
                     filename, load_on_all_ranks=load_on_all_ranks
                 )
-                
+
                 if self._model._get_name() == "Wav2Vec2Model" and self.device == torch.device('hpu'):
                     state = utils.hpu_wav2vec2_params_reshape(state, False)
 
@@ -616,7 +616,7 @@ class Trainer(object):
         if last_optim_state is not None and not reset_optimizer:
             # rebuild optimizer after loading model, since params may have changed
             self._build_optimizer()
-            
+
             if self._model._get_name() == "Wav2Vec2Model" and self.device == torch.device('hpu'):
                 last_optim_state = utils.hpu_wav2vec2_optimizer_reshape(last_optim_state, False)
 
@@ -878,6 +878,8 @@ class Trainer(object):
                     )
                     if self.hpu and self.cfg.common.hpu_lazy_mode:
                         self._hpu_markstep()
+                    if self.hpu and self.cfg.common.profile:
+                        p.step()
                     del loss
 
                 logging_outputs.append(logging_output)

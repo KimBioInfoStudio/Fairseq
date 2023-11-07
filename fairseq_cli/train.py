@@ -581,10 +581,18 @@ def cli_main(
             f"Started plasma server pid {server.server.pid} {cfg.common.plasma_path}"
         )
 
-    if args.profile:
+    if args.profile and not cfg.common.hpu and not cfg.common.tpu:
         with torch.cuda.profiler.profile():
             with torch.autograd.profiler.emit_nvtx():
                 distributed_utils.call_main(cfg, main)
+    if args.profile and cfg.common.hpu:
+        def _handler(p):
+            p.export_chrome_trace("trace.json")
+        os.environ['HABANA_PROFILE'] = '1'
+        activities = [torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.HPU]
+        schedule = torch.profiler.schedule(wait=0, warmup=100, active=3, repeat=1)
+        with torch.profiler.profile(activities=activites, schedule=schedule, on_trace_ready=_handler) as p:
+            distributed_utils.call_main(cfg, main)
     else:
         distributed_utils.call_main(cfg, main)
 
