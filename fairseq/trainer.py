@@ -844,7 +844,7 @@ class Trainer(object):
         os.environ['HABANA_PROFILE'] = '1'
         activities = [torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.HPU]
         schedule = torch.profiler.schedule(wait=0, warmup=100, active=3, repeat=1)
-        with torch.profiler.profile(activities=activities, schedule=schedule, record_shape=False, on_trace_ready=_handler) as p:
+        with torch.profiler.profile(activities=activities, schedule=schedule, with_stack=False, record_shapes=False, on_trace_ready=_handler) as p:
             for i, sample in enumerate(samples):  # delayed update loop
                 if self.cfg.common.hpu_lazy_mode and self.cfg.common.hpu_graphs:
                     self.model.set_iteration_count(i)
